@@ -1,6 +1,7 @@
 // This file is part of the IMP project.
 
 #include <sstream>
+#include <limits>
 
 #include "lexer.h"
 
@@ -15,6 +16,10 @@ Token::Token(const Token &that)
     case Kind::STRING:
     case Kind::IDENT: {
       value_.StringValue = new std::string(*that.value_.StringValue);
+      break;
+    }
+    case Kind::INT: {
+      value_.IntValue = that.value_.IntValue;
       break;
     }
     default: {
@@ -42,6 +47,10 @@ Token &Token::operator=(const Token &that)
     case Kind::STRING:
     case Kind::IDENT: {
       value_.StringValue = new std::string(*that.value_.StringValue);
+      break;
+    }
+    case Kind::INT: {
+      value_.IntValue = that.value_.IntValue;
       break;
     }
     default: {
@@ -79,6 +88,13 @@ Token Token::String(const Location &l, const std::string &str)
 {
   Token tk(l, Kind::STRING);
   tk.value_.StringValue = new std::string(str);
+  return tk;
+}
+
+// -----------------------------------------------------------------------------
+Token Token::Int(const Location &l, const std::uint64_t integer) {
+  Token tk(l, Kind::INT);
+  tk.value_.IntValue = integer;
   return tk;
 }
 
@@ -207,6 +223,18 @@ const Token &Lexer::Next()
         if (word == "return") return tk_ = Token::Return(loc);
         if (word == "while") return tk_ = Token::While(loc);
         return tk_ = Token::Ident(loc, word);
+      } else if(isdigit(chr_)) {
+        std::uint64_t number = 0;
+        do {
+          number = number * 10 + chr_ - '0';
+
+          if(number > uint64_t(std::numeric_limits<int64_t>::max())) {
+            Error("overflow in conversion for uint64 value '" + std::to_string(number) + "' to int64");
+          }
+
+          NextChar();
+        } while(isdigit(chr_));
+        return tk_ = Token::Int(loc, number);
       }
       Error("unknown character '" + std::string(1, chr_) + "'");
     }

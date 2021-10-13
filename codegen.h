@@ -162,6 +162,9 @@ private:
   /// Emit an address or create a fixup for later.
   void EmitFixup(Label label);
 
+  /// Emit integer value.
+  void EmitInt(const Expr &expr);
+
 private:
   /// Reference to the program constructed by the code generator.
   std::vector<uint8_t> code_;
