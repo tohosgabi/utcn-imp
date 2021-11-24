@@ -89,6 +89,7 @@ std::shared_ptr<Stmt> Parser::ParseStmt()
     case Token::Kind::RETURN: return ParseReturnStmt();
     case Token::Kind::WHILE: return ParseWhileStmt();
     case Token::Kind::LBRACE: return ParseBlockStmt();
+    case Token::Kind::IF: return ParseIfStmt();
     default: return std::make_shared<ExprStmt>(ParseExpr());
   }
 }
@@ -100,9 +101,9 @@ std::shared_ptr<BlockStmt> Parser::ParseBlockStmt()
 
   std::vector<std::shared_ptr<Stmt>> body;
   while (!lexer_.Next().Is(Token::Kind::RBRACE)) {
-    body.push_back(ParseStmt());
+    body.push_back(ParseStmt());  
     if (!Current().Is(Token::Kind::SEMI)) {
-      break;
+      break;      
     }
   }
   Check(Token::Kind::RBRACE);
@@ -133,6 +134,27 @@ std::shared_ptr<WhileStmt> Parser::ParseWhileStmt()
 }
 
 // -----------------------------------------------------------------------------
+std::shared_ptr<IfStmt> Parser::ParseIfStmt() {
+  Check(Token::Kind::IF);
+  Expect(Token::Kind::LPAREN);
+  lexer_.Next();
+  auto cond = ParseExpr();
+  Check(Token::Kind::RPAREN);
+  lexer_.Next();
+  auto stmt = ParseStmt();
+
+  if(Current().Is(Token::Kind::ELSE)) {
+    lexer_.Next();
+    auto elseStmt = ParseStmt();
+
+    return std::make_shared<IfStmt>(cond, stmt, elseStmt);
+  }
+
+  return std::make_shared<IfStmt>(cond, stmt, nullptr);
+}
+
+
+// -----------------------------------------------------------------------------
 std::shared_ptr<Expr> Parser::ParseTermExpr()
 {
   auto tk = Current();
@@ -150,6 +172,13 @@ std::shared_ptr<Expr> Parser::ParseTermExpr()
       return std::static_pointer_cast<Expr>(
         std::make_shared<IntExpr>(integer)
       );
+    }
+    case Token::Kind::LPAREN: { 
+      lexer_.Next();
+      auto expr = ParseExpr();
+      Check(Token::Kind::RPAREN);
+      lexer_.Next();
+      return expr;
     }
     default: {
       std::ostringstream os;
@@ -179,14 +208,63 @@ std::shared_ptr<Expr> Parser::ParseCallExpr()
 }
 
 // -----------------------------------------------------------------------------
-std::shared_ptr<Expr> Parser::ParseAddSubExpr()
+std::shared_ptr<Expr> Parser::ParseMulDivExpr()
 {
   std::shared_ptr<Expr> term = ParseCallExpr();
-  while (Current().Is(Token::Kind::PLUS)) {
+  while(Current().Is(Token::Kind::MULTIPLY) || Current().Is(Token::Kind::DIVIDE) || Current().Is(Token::Kind::MODULO)) {
+    auto tk = Current();
+
     lexer_.Next();
     auto rhs = ParseCallExpr();
-    term = std::make_shared<BinaryExpr>(BinaryExpr::Kind::ADD, term, rhs);
+
+    term = std::make_shared<BinaryExpr>(
+      tk.Is(Token::Kind::MULTIPLY) ?  BinaryExpr::Kind::MUL : (
+                                      tk.Is(Token::Kind::DIVIDE) ?  BinaryExpr::Kind::DIV : 
+                                                                    BinaryExpr::Kind::MOD), term, rhs);
   }
+
+  return term;
+}
+
+// -----------------------------------------------------------------------------
+std::shared_ptr<Expr> Parser::ParseAddSubExpr()
+{
+  std::shared_ptr<Expr> term = ParseMulDivExpr();
+  while (Current().Is(Token::Kind::PLUS) || Current().Is(Token::Kind::MINUS)) {
+    auto tk = Current();
+
+    lexer_.Next();
+    auto rhs = ParseMulDivExpr();
+
+    term = std::make_shared<BinaryExpr>(tk.Is(Token::Kind::PLUS) ? BinaryExpr::Kind::ADD : BinaryExpr::Kind::SUB, term, rhs);
+  }
+
+  return term;
+}
+
+// -----------------------------------------------------------------------------
+std::shared_ptr<Expr> Parser::ParseCompExpr() 
+{
+  std::shared_ptr<Expr> term = ParseAddSubExpr();
+  while(Current().Is(Token::Kind::DOUBLE_EQUAL) ||
+        Current().Is(Token::Kind::NOT_EQUAL) ||
+        Current().Is(Token::Kind::SMALLER) ||
+        Current().Is(Token::Kind::SMALLER_OR_EQUAL) ||
+        Current().Is(Token::Kind::GREATER) ||
+        Current().Is(Token::Kind::GREATER_OR_EQUAL)) {
+
+    auto tk = Current();
+
+    lexer_.Next();
+    auto rhs = ParseAddSubExpr();
+
+    term = std::make_shared<BinaryExpr>(tk.Is(Token::Kind::DOUBLE_EQUAL) ? BinaryExpr::Kind::DEQ : 
+                                       (tk.Is(Token::Kind::NOT_EQUAL) ? BinaryExpr::Kind::NEQ :
+                                       (tk.Is(Token::Kind::SMALLER) ? BinaryExpr::Kind::SM : 
+                                       (tk.Is(Token::Kind::SMALLER_OR_EQUAL) ? BinaryExpr::Kind::SMEQ : 
+                                       (tk.Is(Token::Kind::GREATER) ? BinaryExpr::Kind::GR : BinaryExpr::Kind::GREQ)))), term, rhs);
+  }
+
   return term;
 }
 

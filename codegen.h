@@ -118,6 +118,8 @@ private:
   void LowerReturnStmt(const Scope &scope, const ReturnStmt &returnStmt);
   /// Lowers a standalone expression statement.
   void LowerExprStmt(const Scope &scope, const ExprStmt &exprStmt);
+  /// Lowers an if statement.
+  void LowerIfStmt(const Scope &scope, const IfStmt &ifStmt);
 
   /// Lowers a single expression.
   void LowerExpr(const Scope &scope, const Expr &expr);
@@ -149,6 +151,26 @@ private:
   void EmitReturn();
   /// Emit an add opcode.
   void EmitAdd();
+  /// Emit a sub opcode.
+  void EmitSub();
+  /// Emit a mul opcode.
+  void EmitMul();
+  /// Emit a div opcode;
+  void EmitDiv();
+  /// Emit a mod opcode;
+  void EmitMod();
+  /// Emit a double equal opcode;
+  void EmitDoubleEqual();
+  /// Emit a not equal opcode;
+  void EmitNotEqual();
+  /// Emit a smaller opcode;
+  void EmitSmaller();
+  /// Emit a smaller or equal opcode;
+  void EmitSmallerOrEqual();
+  /// Emit a greater opcode;
+  void EmitGreater();
+  /// Emit a greater or equal opcode;
+  void EmitGreaterOrEqual();
   /// Emit a label.
   void EmitLabel(Label label);
   /// Emit a conditional jump.

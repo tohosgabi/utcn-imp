@@ -21,6 +21,7 @@ public:
   enum class Kind {
     BLOCK,
     WHILE,
+    IF,
     EXPR,
     RETURN
   };
@@ -101,7 +102,17 @@ class BinaryExpr : public Expr {
 public:
   /// Enumeration of binary operators.
   enum class Kind {
-    ADD
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+    DEQ, 
+    NEQ,
+    SM,
+    SMEQ, 
+    GR, 
+    GREQ
   };
 
 public:
@@ -234,6 +245,35 @@ private:
   /// Expression to be executed in the loop body.
   std::shared_ptr<Stmt> stmt_;
 };
+
+/**
+ * If statement.
+ *
+ * if (<cond>) <stmt> else <stmt>
+ */
+class IfStmt final : public Stmt {
+public: 
+  IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> stmt, std::shared_ptr<Stmt> elseStmt)
+    : Stmt(Kind::IF)
+    , cond_(cond)
+    , stmt_(stmt)
+    , elseStmt_(elseStmt)
+  {
+  }
+
+  const Expr &GetCond() const { return *cond_; }
+  const Stmt &GetStmt() const { return *stmt_; }
+  std::shared_ptr<Stmt> GetElseStmt() const { return elseStmt_; }
+
+private:
+  /// Condition for then branch.
+  std::shared_ptr<Expr> cond_;
+  /// Expression to be executed in then branch.
+  std::shared_ptr<Stmt> stmt_;
+  /// Expression to be executed in else branch.
+  std::shared_ptr<Stmt> elseStmt_;
+};
+
 
 /**
  * Base class for internal and external function declarations.

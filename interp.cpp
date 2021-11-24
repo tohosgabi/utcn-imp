@@ -65,6 +65,99 @@ void Interp::Run()
         Push(result);
         continue;
       }
+      case Opcode::SUB: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+        int64_t result = lhs - rhs;
+
+        if((rhs < 0 && lhs < 0 && result > 0) || (rhs > 0 && lhs > 0 && result < 0)) {
+          RuntimeError("overflow in sum for values '" + std::to_string(rhs) + "' and '" + std::to_string(lhs) + "'");
+        }
+
+        Push(result);
+        continue;
+      }
+      case Opcode::MUL: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = lhs * rhs;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::DIV: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = lhs / rhs;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::MOD: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = lhs % rhs;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::DEQ: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = (lhs == rhs) ? 1 : 0;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::NEQ: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = (lhs != rhs) ? 1 : 0;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::SM: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = (lhs < rhs) ? 1 : 0;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::SMEQ: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = (lhs <= rhs) ? 1 : 0;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::GR: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = (lhs > rhs) ? 1 : 0;
+
+        Push(result);
+        continue;
+      }
+      case Opcode::GREQ: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+
+        int64_t result = (lhs >= rhs) ? 1 : 0;
+
+        Push(result);
+        continue;
+      }
       case Opcode::RET: {
         auto depth = prog_.Read<unsigned>(pc_);
         auto nargs = prog_.Read<unsigned>(pc_);

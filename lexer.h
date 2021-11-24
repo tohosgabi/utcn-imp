@@ -37,6 +37,9 @@ public:
     FUNC,
     RETURN,
     WHILE,
+    IF, 
+    ELSE,
+
     // Symbols.
     LPAREN,
     RPAREN,
@@ -46,12 +49,27 @@ public:
     SEMI,
     EQUAL,
     COMMA,
+
+    // Binary
     PLUS,
+    MINUS, 
+    MULTIPLY,
+    DIVIDE,
+    MODULO, 
+    
+    // Conditional
+    DOUBLE_EQUAL,
+    NOT_EQUAL,
+    GREATER,
+    GREATER_OR_EQUAL,
+    SMALLER,
+    SMALLER_OR_EQUAL,
+
     // Complex tokens.
     INT,
     STRING,
     IDENT,
-    END,
+    END    
   };
 
 public:
@@ -113,6 +131,18 @@ public:
   static Token Ident(const Location &l, const std::string &str);
   static Token String(const Location &l, const std::string &str);
   static Token Int(const Location &l, const std::uint64_t integer);
+  static Token DoubleEqual(const Location &l) { return Token(l, Kind::DOUBLE_EQUAL); }
+  static Token NotEqual(const Location &l) { return Token(l, Kind::NOT_EQUAL); }
+  static Token Minus(const Location &l) { return Token(l, Kind::MINUS); }
+  static Token Multiply(const Location &l) { return Token(l, Kind::MULTIPLY); }
+  static Token Divide(const Location &l) { return Token(l, Kind::DIVIDE); }
+  static Token Modulo(const Location &l) { return Token(l, Kind::MODULO); }
+  static Token Greater(const Location &l) { return Token(l, Kind::GREATER); }
+  static Token GreaterOrEqual(const Location &l) { return Token(l, Kind::GREATER_OR_EQUAL); }
+  static Token Smaller(const Location &l) { return Token(l, Kind::SMALLER); }
+  static Token SmallerOrEqual(const Location &l) { return Token(l, Kind::SMALLER_OR_EQUAL); }
+  static Token If(const Location &l) { return Token(l, Kind::IF); }
+  static Token Else(const Location &l) { return Token(l, Kind::ELSE); }
 
   /// Print the token to a stream.
   void Print(std::ostream &os) const;

@@ -141,6 +141,18 @@ std::ostream &operator<<(std::ostream &os, const Token::Kind kind)
     case Token::Kind::INT: return os << "INT";
     case Token::Kind::STRING: return os << "STRING";
     case Token::Kind::IDENT: return os << "IDENT";
+    case Token::Kind::DOUBLE_EQUAL: return os << "==";
+    case Token::Kind::NOT_EQUAL: return os << "!=";
+    case Token::Kind::MINUS: return os << "-";
+    case Token::Kind::MULTIPLY: return os << "*";
+    case Token::Kind::DIVIDE: return os << "/";
+    case Token::Kind::MODULO: return os << "%";
+    case Token::Kind::GREATER: return os << ">";
+    case Token::Kind::GREATER_OR_EQUAL: return os << ">=";
+    case Token::Kind::SMALLER: return os << "<";
+    case Token::Kind::SMALLER_OR_EQUAL: return os << "<=";
+    case Token::Kind::IF: return os << "if";
+    case Token::Kind::ELSE: return os << "else";
   }
   return os;
 }
@@ -196,9 +208,45 @@ const Token &Lexer::Next()
     case '}': return NextChar(), tk_ = Token::RBrace(loc);
     case ':': return NextChar(), tk_ = Token::Colon(loc);
     case ';': return NextChar(), tk_ = Token::Semi(loc);
-    case '=': return NextChar(), tk_ = Token::Equal(loc);
+    case '=': {
+      NextChar();
+      if(chr_ == '=') {
+        return NextChar(), tk_ = Token::DoubleEqual(loc);
+      }  
+      
+      return tk_ = Token::Equal(loc);
+    }
+    case '!': {
+      NextChar();
+      if(chr_ == '=') {
+        return NextChar(), tk_ = Token::NotEqual(loc);
+      }
+
+      // TODO: implement token for '!' (not)
+      break;
+    }
     case '+': return NextChar(), tk_ = Token::Plus(loc);
+    case '-': return NextChar(), tk_ = Token::Minus(loc);
+    case '*': return NextChar(), tk_ = Token::Multiply(loc);
+    case '/': return NextChar(), tk_ = Token::Divide(loc);
+    case '%': return NextChar(), tk_ = Token::Modulo(loc);
     case ',': return NextChar(), tk_ = Token::Comma(loc);
+    case '<': {
+      NextChar();
+      if(chr_ == '=') {
+        return NextChar(), tk_ = Token::SmallerOrEqual(loc);
+      }
+
+      return tk_ = Token::Smaller(loc);
+    }
+    case '>': {
+      NextChar();
+      if(chr_ == '=') {
+        return NextChar(), tk_ = Token::GreaterOrEqual(loc);
+      }
+
+      return tk_ = Token::Greater(loc);
+    }
     case '"': {
       std::string word;
       NextChar();
@@ -222,6 +270,8 @@ const Token &Lexer::Next()
         if (word == "func") return tk_ = Token::Func(loc);
         if (word == "return") return tk_ = Token::Return(loc);
         if (word == "while") return tk_ = Token::While(loc);
+        if (word == "if") return tk_ = Token::If(loc);
+        if (word == "else") return tk_ = Token::Else(loc);
         return tk_ = Token::Ident(loc, word);
       } else if(isdigit(chr_)) {
         std::uint64_t number = 0;
